@@ -26,19 +26,16 @@ class Index extends Component {
                     Jadi pada akhirnya yaa balik lagi kalo gak <code>Batch</code> atau <code>Powershell</code>. Sebenernya ada satu lagi sih, <code>WSH</code> (<code>Windows Scripting Host</code>). Cuma saia rada <em>reluctant</em> karena semacam <em>unsupported</em> lagi karena pake <code>VBScript</code> dan <code>JScript</code>.
                 </p>
                 <p>
-                    Balik lagi ke pembicaraan awal.
-                    Naah, ternyata si <code>Powershell</code> ini tuh memang di-<em>build on top of <code>.Net</code></em>. Jadi dia bisa jalanin <code>C#</code>, dia bisa pake dll <code>.Net</code> juga.
+                    Pilihan-pilihan di atas yang akhirnya membuat gue ngerasa `udahlah, udah saatnya pake <code>Powershell</code> mungkin`. Dan guepun meriset (baca: meng-<em>google</em> / mem-<em>bing</em>) beberapa <em>command</em> <code>Powershell</code>.
+                    Naah, ternyata si <code>Powershell</code> ini tuh memang di-<em>build on top of <code>.Net</code></em>. Jadi dia bisa jalanin <code>C#</code>, dia bisa pake <code>dll .Net</code> juga.
                     Wow?!?! baru tau saia.<span role="img">😄</span>
-                </p>
-                <p>
-                    Oke deh kita mulai aja.
                 </p>
                 <p>
                     Kalo gue belajar bahasa pemrograman baru. Apapun itu, pasti mulainya dari manipulasi <code>Array</code>.
                 </p>
                 <p>
-                    Pertama-tama, kita butuh data <em>dummy</em> nih. Coba kita ambil dari <em><Link to="http://www.convertcsv.com/generate-test-data.htm">Online generator</Link></em> ini yak.
-                    Udah gitu kita masukin ke <code>$data</code>. Terus kita tampilin ke layar dengan memanggil <code>$data</code> lagi.
+                    Pertama-tama, nyiapin data <em>dummy</em> nih. Ngambil dari <em><Link to="http://www.convertcsv.com/generate-test-data.htm">Online generator</Link></em> ini.
+                    Udah gitu masukin ke <code>$data</code>. Terus tampilin ke layar dengan manggil <code>$data</code> lagi.
                 </p>
                 <pre className="line-numbers language-powershell">
                     <code>
@@ -56,7 +53,7 @@ $data`
                 </pre>
                 <br />
                 <p>
-                    Btw, jangan lupa buat di-<em>save</em> ya ke <code>Script.ps1</code> atau apapun <code>.ps1</code>. Terus <em>run</em>!!!
+                    Btw, karena bakalan di-<em>run</em> di <em>Server</em>, jadinya gue <em>save</em> ke <code>Script.ps1</code>. Terus <em>run</em>!!!
                 </p>
                 <p>Nanti jadi gini.</p>
                 <pre>
@@ -282,7 +279,7 @@ $mapped`
                 <p>
                     Itu karena <code>Select-Object</code> sejatinya memang untuk <code>Object</code>. Apapun yang di <em>output</em>-in <code>Select-Object</code> pasti <code>type</code>-nya <code>Object</code>.
                     Apa hubungannya sama <em>header</em> yang suneh (baca: suka aneh) gitu? Itu karena <code>Select-Object</code>-nya <em>projecting anonymous object</em>.
-                    Lalu gimana biar gak <em>anonymous</em>? Kita pake yang namanya <em>computed property</em> atau <em>calculated property</em>.
+                    Lalu gimana biar gak <em>anonymous</em>? Kita bisa pake yang namanya <em>computed property</em> atau <em>calculated property</em>.
                     Contohnya gini.
                 </p>
                 <pre className="line-numbers language-powershell">
@@ -321,7 +318,59 @@ $mapped`
                     4. Aggregate / Reduce
                 </p>
                 <p>
-                    
+                    <code>Reduce</code> di <code>Powershell</code> rada beda ya. Soalnya dia pake keyword <code>ForEach-Object</code>. Padahal kan ya <code>foreach</code> itukan buat <code>iterate / looping</code> pada umumnya.
+                    Tapi di <code>Powershell</code> sendiri ada <code>ForEarch-Object</code> ada <code>ForEach</code> <em>statement</em>. Gue gakkan bahas disini biar bahasannya gak meluas.
+                </p>
+                <p>
+                    Nah, <code>ForEach-Object</code> punya <code>Begin</code>, <code>Process</code>, dan <code>End</code>. 3 fitur ini yang bisa dipake buat melakukan <code>Reduce</code>.
+                </p>
+                <p>
+                    Karena ini fungsi terakhir jadi gue <em>combine</em> aja semua fungsi-fungsi di atas. <em>Here goes!</em>
+                </p>
+                <pre className="line-numbers language-powershell">
+                    <code>
+                        {
+`$counter = 1;
+$mapped = $data |
+    Sort-Object -Descending { $_ } |
+    Select-Object \`
+        @{ Name = "Index";Expression = {($script:counter++)} }, \`
+        @{ Name = "Name";Expression = {$_} }
+
+$even = $mapped |
+    Where-Object { $_.Index % 2 -eq 0 } |
+    ForEach-Object \`
+        -Begin { $start = "" } \`
+        -Process { $start = $start + $_.Index + ": " + $_.Name + ", " } \`
+        -End { $start.Substring(0, $start.Length -2) }
+
+$odd = $mapped |
+    Where-Object { $_.Index % 2 -ne 0 } |
+    ForEach-Object \`
+        -Begin { $start = "" } \`
+        -Process { $start = $start + $_.Index + ": " + $_.Name + ", " } \`
+        -End { $start.Substring(0, $start.Length -2) }
+
+$even
+$odd`
+                        }
+                    </code>
+                </pre>
+                <br />
+                <p>
+                    Menghasilkan iniih.
+                </p>
+                <pre>
+                    <code>
+                        {
+`2: Stephen, 4: Ollie, 6: Maurice, 8: Leah, 10: Isabella, 12: Gabriel, 14: Eleanor, 16: Danny, 18: Charles, 20: Adam
+1: Susan, 3: Patrick, 5: Milton, 7: Lewis, 9: Kathryn, 11: Genevieve, 13: Ethel, 15: Donald, 17: Clifford, 19: Carolyn`
+                        }
+                    </code>
+                </pre>
+                <br />
+                <p>
+                    Wuaaahhhh, gue gak nyangka ternyata <code>Powershell</code> se-<em>mancay</em> iniihh. Kadang hal-hal kecil semacam ini yang ngasi motivasi buat <em>explore</em> lebih jauh lagi.
                 </p>
 
                 <Link to="/">Kembali ke Halaman Utama</Link>
