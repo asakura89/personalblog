@@ -51,6 +51,7 @@ https://martinfowler.com/bliki/ValueObject.html
 https://enterprisecraftsmanship.com/posts/value-objects-explained/
 https://enterprisecraftsmanship.com/posts/dto-vs-value-object-vs-poco/
 https://grabbagoft.blogspot.com/2007/06/generic-value-object-equality.html
-
+https://stackoverflow.com/a/725365/1181782
+https://stackoverflow.com/a/57350724/1181782
 
 
